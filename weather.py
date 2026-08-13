@@ -72,11 +72,12 @@ def get_location():
     return get_location_by_ip()
 
 def fetch_forecast(lat, lon):
-    """Fetch 10-day forecast data."""
+    """Fetch 10-day forecast in Fahrenheit with precipitation probability."""
     url = (
         f"https://api.open-meteo.com/v1/forecast?"
         f"latitude={lat}&longitude={lon}&"
-        f"daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum&"
+        f"daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max&"
+        f"temperature_unit=fahrenheit&"
         f"forecast_days=10&timezone=auto"
     )
     req = urllib.request.urlopen(url, timeout=5, context=SSL_CONTEXT)
@@ -90,9 +91,9 @@ def display_forecast():
     unit_precip = data["daily_units"]["precipitation_sum"]
 
     print(f"\n🌍 10-Day Weather Forecast: {location}")
-    print("=" * 68)
-    print(f"{'Date':<12} | {'Condition':<22} | {'High / Low':<14} | {'Precip':<8}")
-    print("-" * 68)
+    print("=" * 74)
+    print(f"{'Date':<12} | {'Condition':<20} | {'High / Low':<15} | {'Precip (Prob)':<16}")
+    print("-" * 74)
 
     for i in range(len(daily["time"])):
         date_formatted = datetime.strptime(daily["time"][i], "%Y-%m-%d").strftime("%a, %b %d")
@@ -102,14 +103,15 @@ def display_forecast():
         t_max = daily["temperature_2m_max"][i]
         t_min = daily["temperature_2m_min"][i]
         precip = daily["precipitation_sum"][i]
+        prob = daily["precipitation_probability_max"][i]
 
         condition_str = f"{icon} {desc}"
-        temp_str = f"{t_max:.1f}° / {t_min:.1f}°{unit_temp}"
-        precip_str = f"{precip:.1f} {unit_precip}"
+        temp_str = f"{t_max:.1f}° / {t_min:.1f}{unit_temp}"
+        precip_str = f"{precip:.1f} {unit_precip} ({prob}%)"
 
-        print(f"{date_formatted:<12} | {condition_str:<22} | {temp_str:<14} | {precip_str:<8}")
+        print(f"{date_formatted:<12} | {condition_str:<20} | {temp_str:<15} | {precip_str:<16}")
 
-    print("=" * 68 + "\n")
+    print("=" * 74 + "\n")
 
 if __name__ == "__main__":
     display_forecast()
