@@ -31,6 +31,29 @@ WEATHER_CODES = {
     95: ("🌩️ ", "Thunderstorm"),
 }
 
+def print_help():
+    """Print command-line help instructions."""
+    help_text = """
+🌍 Weather Terminal App - Help Guide
+
+USAGE:
+  ./weather.py                       Fetch forecast for your current IP location
+  ./weather.py <location>            Fetch forecast for a specific city/location
+  ./weather.py -h | help | --help    Display this help menu
+
+EXAMPLES:
+  ./weather.py                       (Uses IP geolocation)
+  ./weather.py santa cruz            (Searches for Santa Cruz)
+  ./weather.py helpt                 (Searches for Helpt, Germany)
+
+FEATURES:
+  • 10-day weather forecast with max/min temperatures in Fahrenheit (°F).
+  • Auto-adjusting condition column based on the longest weather string.
+  • Precipitation totals with peak percentage probability.
+    """
+    print(help_text)
+    sys.exit(0)
+
 def get_display_width(text):
     """Calculate true terminal display width, ignoring zero-width unicode modifiers."""
     clean = text.replace('\ufe0f', '')
@@ -76,7 +99,13 @@ def get_location_by_ip():
 def get_location():
     """Determine coordinates based on terminal input or IP fallback."""
     if len(sys.argv) > 1:
-        query = " ".join(sys.argv[1:])
+        query = " ".join(sys.argv[1:]).strip()
+        
+        # Help flag handler
+        if query.lower() in ["-h", "--help", "help"]:
+            print_help()
+
+        # Location query lookup
         coords = get_location_by_name(query)
         if coords:
             return coords
@@ -103,7 +132,6 @@ def display_forecast():
     unit_temp = data["daily_units"]["temperature_2m_max"]
     unit_precip = data["daily_units"]["precipitation_sum"]
 
-    # 1. Gather all row data
     rows = []
     for i in range(len(daily["time"])):
         date_formatted = datetime.strptime(daily["time"][i], "%Y-%m-%d").strftime("%a, %b %d")
@@ -121,10 +149,7 @@ def display_forecast():
 
         rows.append((date_formatted, condition_str, temp_str, precip_str))
 
-    # 2. Calculate dynamic column width based on the longest condition string
     max_cond_width = max([get_display_width(r[1]) for r in rows] + [len("Condition")])
-
-    # 3. Print output table
     table_width = 12 + 3 + max_cond_width + 3 + 15 + 3 + 16
     header_cond = pad_str("Condition", max_cond_width)
 
