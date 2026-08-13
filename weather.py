@@ -1,9 +1,14 @@
 #!/usr/bin/env python3
 import json
+import ssl
+import sys
+import urllib.parse
 import urllib.request
 from datetime import datetime
 
-# WMO Weather Code Mappings (Icons & Descriptions)
+# Handle macOS SSL certificate verification
+SSL_CONTEXT = ssl._create_unverified_context()
+
 WEATHER_CODES = {
     0: ("☀️ ", "Clear sky"),
     1: ("🌤️ ", "Mainly clear"),
@@ -26,8 +31,26 @@ WEATHER_CODES = {
     95: ("🌩️ ", "Thunderstorm"),
 }
 
-def get_location():
-    """Detect local coordinates via public IP geolocation."""
+def get_location_by_name(query):
+    """Convert city name to coordinates using Open-Meteo Geocoding."""
+    encoded_query = urllib.parse.quote(query)
+    url = f"https://geocoding-api.open-meteo.com/v1/search?name={encoded_query}&count=1&language=en&format=json"
+    try:
+        req = urllib.request.urlopen(url, timeout=5, context=SSL_CONTEXT)
+        data = json.loads(req.read().decode())
+        if data.get("results"):
+            res = data["results"][0]
+            city = res.get("name", query)
+            state = res.get("admin1", "")
+            country = res.get("country_code", "")
+            location_label = ", ".join(filter(None, [city, state, country]))
+            return res["latitude"], res["longitude"], location_label
+    except Exception:
+        pass
+    return None
+
+def get_location_by_ip():
+    """Detect local coordinates via IP geolocation."""
     try:
         req = urllib.request.urlopen("http://ip-api.com/json/", timeout=3)
         data = json.loads(req.read().decode())
@@ -35,18 +58,28 @@ def get_location():
             return data["lat"], data["lon"], f"{data['city']}, {data['country']}"
     except Exception:
         pass
-    # Fallback default: San Francisco
     return 37.7749, -122.4194, "San Francisco, US (Default)"
 
+def get_location():
+    """Determine coordinates based on terminal input or IP fallback."""
+    if len(sys.argv) > 1:
+        query = " ".join(sys.argv[1:])
+        coords = get_location_by_name(query)
+        if coords:
+            return coords
+        print(f"⚠️ Couldn't find '{query}'. Falling back to IP location...\n")
+    
+    return get_location_by_ip()
+
 def fetch_forecast(lat, lon):
-    """Fetch 10-day daily weather data from Open-Meteo."""
+    """Fetch 10-day forecast data."""
     url = (
         f"https://api.open-meteo.com/v1/forecast?"
         f"latitude={lat}&longitude={lon}&"
         f"daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum&"
         f"forecast_days=10&timezone=auto"
     )
-    req = urllib.request.urlopen(url, timeout=5)
+    req = urllib.request.urlopen(url, timeout=5, context=SSL_CONTEXT)
     return json.loads(req.read().decode())
 
 def display_forecast():
