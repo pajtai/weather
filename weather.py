@@ -31,6 +31,19 @@ WEATHER_CODES = {
     95: ("🌩️ ", "Thunderstorm"),
 }
 
+def get_display_width(text):
+    """Calculate true terminal display width, ignoring zero-width unicode modifiers."""
+    clean = text.replace('\ufe0f', '')
+    width = 0
+    for char in clean:
+        width += 2 if ord(char) > 0x2000 else 1
+    return width
+
+def pad_str(text, target_width):
+    """Pad text with spaces based on its visual display width."""
+    padding = max(0, target_width - get_display_width(text))
+    return text + (" " * padding)
+
 def get_location_by_name(query):
     """Convert city name to coordinates using Open-Meteo Geocoding."""
     encoded_query = urllib.parse.quote(query)
@@ -90,11 +103,8 @@ def display_forecast():
     unit_temp = data["daily_units"]["temperature_2m_max"]
     unit_precip = data["daily_units"]["precipitation_sum"]
 
-    print(f"\n🌍 10-Day Weather Forecast: {location}")
-    print("=" * 74)
-    print(f"{'Date':<12} | {'Condition':<20} | {'High / Low':<15} | {'Precip (Prob)':<16}")
-    print("-" * 74)
-
+    # 1. Gather all row data
+    rows = []
     for i in range(len(daily["time"])):
         date_formatted = datetime.strptime(daily["time"][i], "%Y-%m-%d").strftime("%a, %b %d")
         code = daily["weather_code"][i]
@@ -109,9 +119,25 @@ def display_forecast():
         temp_str = f"{t_max:.1f}° / {t_min:.1f}{unit_temp}"
         precip_str = f"{precip:.1f} {unit_precip} ({prob}%)"
 
-        print(f"{date_formatted:<12} | {condition_str:<20} | {temp_str:<15} | {precip_str:<16}")
+        rows.append((date_formatted, condition_str, temp_str, precip_str))
 
-    print("=" * 74 + "\n")
+    # 2. Calculate dynamic column width based on the longest condition string
+    max_cond_width = max([get_display_width(r[1]) for r in rows] + [len("Condition")])
+
+    # 3. Print output table
+    table_width = 12 + 3 + max_cond_width + 3 + 15 + 3 + 16
+    header_cond = pad_str("Condition", max_cond_width)
+
+    print(f"\n🌍 10-Day Weather Forecast: {location}")
+    print("=" * table_width)
+    print(f"{'Date':<12} | {header_cond} | {'High / Low':<15} | {'Precip (Prob)':<16}")
+    print("-" * table_width)
+
+    for date_str, cond_str, temp_str, precip_str in rows:
+        formatted_cond = pad_str(cond_str, max_cond_width)
+        print(f"{date_str:<12} | {formatted_cond} | {temp_str:<15} | {precip_str:<16}")
+
+    print("=" * table_width + "\n")
 
 if __name__ == "__main__":
     display_forecast()
