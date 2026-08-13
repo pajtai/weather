@@ -36,5 +36,22 @@ Thu, Aug 20  | ☁️  Overcast         | 80.9° / 69.6°F  | 0.0 mm (0%)
 Fri, Aug 21  | 🌧️  Light drizzle    | 81.2° / 70.1°F  | 1.0 mm (10%)
 Sat, Aug 22  | 🌧️  Light drizzle    | 74.6° / 69.6°F  | 0.8 mm (23%)
 ========================================================================
-```
 
+❯ ./weather.py gamboa, panama
+
+🌍 10-Day Weather Forecast: Gamboa, Provincia de Colón, PA
+========================================================================
+Date         | Condition            | High / Low      | Precip (Prob)
+------------------------------------------------------------------------
+Thu, Aug 13  | 🌩️  Thunderstorm     | 85.4° / 76.6°F  | 4.4 mm (92%)
+Fri, Aug 14  | 🌩️  Thunderstorm     | 85.5° / 75.5°F  | 9.5 mm (100%)
+Sat, Aug 15  | 🌩️  Thunderstorm     | 84.7° / 73.8°F  | 29.4 mm (100%)
+Sun, Aug 16  | 🌩️  Thunderstorm     | 83.6° / 74.2°F  | 24.9 mm (100%)
+Mon, Aug 17  | 🌦️  Slight showers   | 81.9° / 74.7°F  | 10.2 mm (99%)
+Tue, Aug 18  | 🌦️  Slight showers   | 84.7° / 74.9°F  | 13.4 mm (89%)
+Wed, Aug 19  | 🌩️  Thunderstorm     | 84.3° / 75.8°F  | 14.6 mm (93%)
+Thu, Aug 20  | 🌩️  Thunderstorm     | 80.3° / 75.3°F  | 24.4 mm (100%)
+Fri, Aug 21  | 🌧️  Moderate drizzle | 87.3° / 75.5°F  | 7.8 mm (93%)
+Sat, Aug 22  | 🌧️  Light drizzle    | 84.3° / 74.2°F  | 4.2 mm (94%)
+========================================================================
+```
